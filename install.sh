@@ -21,7 +21,7 @@ install_targets() {
     fi
     echo "Stowing $cmd configuration..."
     stow --target="$HOME" -v "$dir"
-    eval $dir &
+    eval $cmd &
   done
   wait
 }
