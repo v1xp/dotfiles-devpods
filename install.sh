@@ -47,8 +47,7 @@ task_git() {
   git config --global user.name "v1XP.CCox"
 }
 first_inits() {
-  command -v nvim >/dev/null 2>&1 && nohup nvim --headless "+Lazy! sync" +qa >$logfile 2>&1
-  command -v nvim >/dev/null 2>&1 && nohup nvim --headless "MasonUpdate" +qa >$logfile 2>&1
+  command -v nvim >/dev/null 2>&1 && nohup nvim --headless "+Lazy! sync" +TSUpdate +qa >$logfile 2>&1
 }
 
 task_main() {
