@@ -12,7 +12,6 @@ install_targets() {
   echo "Using dotfiles from: $(pwd)"
   cd "targets" || exit 1
 
-  echo "DEBUG::: $(pwd)"
   for dir in */; do
     cmd=${dir%/}
     if ! command -v "$cmd" &>/dev/null; then
@@ -21,7 +20,6 @@ install_targets() {
     fi
     echo "Stowing $cmd configuration..."
     stow --target="$HOME" -v "$dir"
-    nohup $cmd </dev/null >/dev/null 2>&1 &
   done
   wait
 }
@@ -45,6 +43,12 @@ task_git() {
   git config --global user.signingkey 3B54C1D66B135A28494341A812CC6254259BFE53
   git config --global user.email "v1xp.ccox@proton.me"
   git config --global user.name "v1XP.CCox"
+}
+first_inits() {
+  cmds=(nvim)
+  for cmd in "${cmds[@]}"; do
+    command -v "$cmd" >/dev/null 2>&1 && "$cmd"
+  done
 }
 
 task_main() {
