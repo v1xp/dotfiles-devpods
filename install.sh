@@ -45,15 +45,14 @@ task_git() {
   git config --global user.name "v1XP.CCox"
 }
 first_inits() {
-  cmds=(nvim)
-  for cmd in "${cmds[@]}"; do
-    command -v "$cmd" >/dev/null 2>&1 && "$cmd"
-  done
+  command -v nvim >/dev/null 2>&1 && nohup nvim --headless --es -c "Lazy sync" >/dev/null 2>&1 &
 }
 
 task_main() {
   task_stow &
   task_git &
+  wait
+  first_inits
 }
 
 task_main
