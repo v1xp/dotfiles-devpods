@@ -11,30 +11,37 @@ task_install_stow() {
 }
 
 install_targets() {
-  echo "Using dotfiles from: $(pwd)"
-  cd "targets" || exit 1
+  local dotfiles_dir
+  dotfiles_dir="$(cd "$(dirname "$0")" && pwd)"
+  echo "Using dotfiles from: $dotfiles_dir"
 
-  for dir in */; do
-    cmd=${dir%/}
+  # Copy dotfiles to a persistent location so symlinks survive container restarts
+  local persist_dir="$HOME/.local/share/dotfiles"
+  mkdir -p "$persist_dir"
+  cp -a "$dotfiles_dir/." "$persist_dir/"
+  echo "Dotfiles persisted to $persist_dir"
+
+  local targets_dir="$persist_dir/targets"
+  for target_dir in "$targets_dir"/*/; do
+    local cmd
+    cmd="$(basename "$target_dir")"
     if ! command -v "$cmd" &>/dev/null; then
-      echo "Skipping $dir as it is not a command."
+      echo "Skipping $cmd as it is not a command."
       continue
     fi
     echo "Stowing $cmd configuration..."
 
-    # Remove any existing files that would conflict with stow symlinks
     while IFS= read -r -d '' f; do
-      rel="${f#$dir}"
-      target="$HOME/$rel"
-      if [ -e "$target" ] && [ ! -L "$target" ]; then
-        echo "  BACKUP: $target -> $target.stow-bak"
-        mv "$target" "$target.stow-bak"
+      local rel="${f#"$target_dir"}"
+      local dest="$HOME/$rel"
+      if [ -e "$dest" ] && [ ! -L "$dest" ]; then
+        echo "  BACKUP: $dest -> $dest.stow-bak"
+        mv "$dest" "$dest.stow-bak"
       fi
-    done < <(find "$dir" -type f -print0)
+    done < <(find "$target_dir" -type f -print0)
 
-    stow --target="$HOME" -v "$dir"
+    (cd "$targets_dir" && stow --target="$HOME" --no-relative -v "$cmd")
   done
-  wait
 }
 
 task_stow() {
@@ -46,7 +53,6 @@ task_stow() {
   fi
 
   install_targets
-
 }
 
 task_git() {
