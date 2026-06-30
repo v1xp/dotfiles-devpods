@@ -117,11 +117,11 @@ task_gpg() {
   done
 
   if [ -n "$gnupg_dir" ]; then
-    if ! grep -q "default-key" "$gnupg_dir/gpg.conf" 2>/dev/null; then
+    if ! grep -q "^default-key" "$gnupg_dir/gpg.conf" 2>/dev/null; then
       echo "default-key 3B54C1D66B135A28494341A812CC6254259BFE53" >>"$gnupg_dir/gpg.conf"
       echo "GPG default key set in $gnupg_dir/gpg.conf"
     fi
-    if ! grep -q "pinentry-mode" "$gnupg_dir/gpg.conf" 2>/dev/null; then
+    if ! grep -q "^pinentry-mode" "$gnupg_dir/gpg.conf" 2>/dev/null; then
       echo "pinentry-mode loopback" >>"$gnupg_dir/gpg.conf"
       echo "GPG pinentry-mode set to loopback"
     fi
@@ -133,18 +133,38 @@ task_gpg() {
   fi
 }
 
-# first_inits() {
-#   sudo ln -sf /usr/share/zoneinfo/America/Campo_Grande /etc/localtime
-#   command -v nvim >/dev/null 2>&1 && nvim --headless "+Lazy! sync" +TSUpdateSync +qa >$logfile 2>&1 &
-# }
-#
+first_inits() {
+  sudo ln -sf /usr/share/zoneinfo/America/Campo_Grande /etc/localtime
+  if command -v nvim >/dev/null 2>&1; then
+    # Set spelllang before Lazy sync to avoid interactive pt-BR prompt
+    nvim --headless +"set spelllang=en_us,pt_br" +qa 2>/dev/null || true
+    nvim --headless +"Lazy! sync" +TSUpdateSync +qa >"$logfile" 2>&1 &
+  fi
+}
+
 task_main() {
-  task_stow &
-  task_git &
-  task_ssh &
-  task_gpg &
-  wait
-  # first_inits
+  local pids=()
+  local errors=0
+
+  task_stow &  pids+=($!)
+  task_git &   pids+=($!)
+  task_ssh &   pids+=($!)
+  task_gpg &   pids+=($!)
+
+  for pid in "${pids[@]}"; do
+    if ! wait "$pid"; then
+      echo "ERROR: Task with PID $pid failed" >&2
+      errors=$((errors + 1))
+    fi
+  done
+
+  if [ "$errors" -gt 0 ]; then
+    echo "WARNING: $errors task(s) failed. Check log: $logfile" >&2
+    return 1
+  fi
+
+  echo "All dotfiles tasks completed successfully."
+  first_inits
 }
 
 task_main
