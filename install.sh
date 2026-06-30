@@ -40,7 +40,7 @@ install_targets() {
       fi
     done < <(find "$target_dir" -type f -print0)
 
-    (cd "$targets_dir" && stow --target="$HOME" --no-relative -v "$cmd")
+    (cd "$targets_dir" && stow --target="$HOME" -v "$cmd")
   done
 }
 
