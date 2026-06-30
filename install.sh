@@ -4,12 +4,6 @@ set -euo pipefail
 
 logfile=~/.dotfiles.log
 
-task_install_stow() {
-  echo "Installing stow..."
-  sudo apt-get update -qq
-  sudo apt-get install -y -qq stow
-}
-
 install_targets() {
   local dotfiles_dir
   dotfiles_dir="$(cd "$(dirname "$0")" && pwd)"
@@ -45,13 +39,7 @@ install_targets() {
 }
 
 task_stow() {
-  echo "Checking for stow..."
-  if ! command -v stow &>/dev/null; then
-    task_install_stow
-  else
-    echo "stow is already installed."
-  fi
-
+  echo "Stowing dotfiles..."
   install_targets
 }
 
