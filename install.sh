@@ -81,8 +81,17 @@ Host github.com
 SSHEOF
     chmod 600 "$HOME/.ssh/config"
     echo "SSH keys copied from $ssh_host"
+  elif [ -n "${SSH_AUTH_SOCK:-}" ]; then
+    echo "Using SSH agent forwarding (SSH_AUTH_SOCK=$SSH_AUTH_SOCK)"
+    cat >"$HOME/.ssh/config" <<SSHEOF
+Host github.com
+  HostName github.com
+  User git
+  IdentityAgent $SSH_AUTH_SOCK
+SSHEOF
+    chmod 600 "$HOME/.ssh/config"
   else
-    echo "No ssh-host mount found, skipping SSH setup"
+    echo "No SSH keys found. Configure SSH agent forwarding or mount .ssh-host."
   fi
 }
 task_gpg() {
@@ -99,18 +108,21 @@ task_gpg() {
       echo "default-key 3B54C1D66B135A28494341A812CC6254259BFE53" >>"$gnupg_dir/gpg.conf"
       echo "GPG default key set in $gnupg_dir/gpg.conf"
     fi
-    # Allow loopback pinentry for headless environments (devcontainer)
+    if ! grep -q "pinentry-mode" "$gnupg_dir/gpg.conf" 2>/dev/null; then
+      echo "pinentry-mode loopback" >>"$gnupg_dir/gpg.conf"
+      echo "GPG pinentry-mode set to loopback"
+    fi
     if ! grep -q "allow-loopback-pinentry" "$gnupg_dir/gpg-agent.conf" 2>/dev/null; then
       echo "allow-loopback-pinentry" >>"$gnupg_dir/gpg-agent.conf"
-      gpg-connect-agent reloadagent /bye 2>/dev/null || true
       echo "GPG agent configured for loopback pinentry"
     fi
+    gpg-connect-agent reloadagent /bye 2>/dev/null || true
   fi
 }
 
 first_inits() {
   sudo ln -sf /usr/share/zoneinfo/America/Campo_Grande /etc/localtime
-  command -v nvim >/dev/null 2>&1 && nohup nvim --headless "+Lazy! sync" +TSUpdateSync +qa >$logfile 2>&1
+  command -v nvim >/dev/null 2>&1 && nohup nvim --headless "+Lazy! sync" +TSUpdateSync +qa >$logfile 2>&1 &
 }
 
 task_main() {
