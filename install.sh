@@ -50,7 +50,10 @@ task_ssh() {
   # $HOME may be /home/victor due to host user, so check the hardcoded path too
   local ssh_host=""
   for p in /home/vscode/.ssh-host "$HOME/.ssh-host"; do
-    if [ -d "$p" ] && [ -f "$p/id_ed25519" ]; then ssh_host="$p"; break; fi
+    if [ -d "$p" ] && [ -f "$p/id_ed25519" ]; then
+      ssh_host="$p"
+      break
+    fi
   done
 
   if [ -n "$ssh_host" ]; then
@@ -74,7 +77,10 @@ SSHEOF
 task_gpg() {
   local gnupg_dir=""
   for p in /home/vscode/.gnupg "$HOME/.gnupg"; do
-    if [ -d "$p" ] && [ -d "$p/private-keys-v1.d" ]; then gnupg_dir="$p"; break; fi
+    if [ -d "$p" ] && [ -d "$p/private-keys-v1.d" ]; then
+      gnupg_dir="$p"
+      break
+    fi
   done
 
   if [ -n "$gnupg_dir" ]; then
