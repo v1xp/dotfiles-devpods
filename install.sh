@@ -67,7 +67,7 @@ task_ssh() {
   # $HOME may be /home/victor due to host user, so check the hardcoded path too
   local ssh_host=""
   for p in /home/vscode/.ssh-host "$HOME/.ssh-host"; do
-    if [ -d "$p" ] && [ -f "$p/id_ed25519" ]; then
+    if [ -d "$p" ] && ls "$p"/id_* &>/dev/null; then
       ssh_host="$p"
       break
     fi
@@ -78,15 +78,22 @@ task_ssh() {
     cp "$ssh_host"/id_* "$HOME/.ssh/" 2>/dev/null || true
     cp "$ssh_host"/known_hosts "$HOME/.ssh/" 2>/dev/null || true
     chmod 600 "$HOME"/.ssh/id_* 2>/dev/null || true
-    cat >"$HOME/.ssh/config" <<'SSHEOF'
+
+    # Detect the first private key (skip *.pub files) for the SSH config
+    local first_key
+    first_key=$(ls "$ssh_host"/id_* 2>/dev/null | grep -v '\.pub$' | head -1)
+    local key_name
+    key_name=$(basename "$first_key")
+
+    cat >"$HOME/.ssh/config" <<SSHEOF
 Host github.com
   HostName github.com
   User git
-  IdentityFile ~/.ssh/id_ed25519
+  IdentityFile ~/.ssh/${key_name}
   IdentitiesOnly yes
 SSHEOF
     chmod 600 "$HOME/.ssh/config"
-    echo "SSH keys copied from $ssh_host"
+    echo "SSH keys copied from $ssh_host (using $key_name)"
   elif [ -n "${SSH_AUTH_SOCK:-}" ]; then
     echo "Using SSH agent forwarding (SSH_AUTH_SOCK=$SSH_AUTH_SOCK)"
     cat >"$HOME/.ssh/config" <<SSHEOF
@@ -126,18 +133,18 @@ task_gpg() {
   fi
 }
 
-first_inits() {
-  sudo ln -sf /usr/share/zoneinfo/America/Campo_Grande /etc/localtime
-  command -v nvim >/dev/null 2>&1 && nohup nvim --headless "+Lazy! sync" +TSUpdateSync +qa >$logfile 2>&1 &
-}
-
+# first_inits() {
+#   sudo ln -sf /usr/share/zoneinfo/America/Campo_Grande /etc/localtime
+#   command -v nvim >/dev/null 2>&1 && nvim --headless "+Lazy! sync" +TSUpdateSync +qa >$logfile 2>&1 &
+# }
+#
 task_main() {
   task_stow &
   task_git &
   task_ssh &
   task_gpg &
   wait
-  first_inits
+  # first_inits
 }
 
 task_main
