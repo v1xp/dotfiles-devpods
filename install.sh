@@ -39,7 +39,10 @@ install_targets() {
 }
 
 task_stow() {
-  echo "Stowing dotfiles..."
+  if ! command -v stow &>/dev/null; then
+    echo "stow not found, installing..."
+    sudo apt-get update -qq && sudo apt-get install -y -qq stow
+  fi
   install_targets
 }
 
