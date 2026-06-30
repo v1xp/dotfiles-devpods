@@ -24,7 +24,7 @@ install_targets() {
 
     # Remove any existing files that would conflict with stow symlinks
     while IFS= read -r -d '' f; do
-      rel="${f#./}"
+      rel="${f#$dir}"
       target="$HOME/$rel"
       if [ -e "$target" ] && [ ! -L "$target" ]; then
         echo "  BACKUP: $target -> $target.stow-bak"
@@ -98,6 +98,12 @@ task_gpg() {
     if ! grep -q "default-key" "$gnupg_dir/gpg.conf" 2>/dev/null; then
       echo "default-key 3B54C1D66B135A28494341A812CC6254259BFE53" >>"$gnupg_dir/gpg.conf"
       echo "GPG default key set in $gnupg_dir/gpg.conf"
+    fi
+    # Allow loopback pinentry for headless environments (devcontainer)
+    if ! grep -q "allow-loopback-pinentry" "$gnupg_dir/gpg-agent.conf" 2>/dev/null; then
+      echo "allow-loopback-pinentry" >>"$gnupg_dir/gpg-agent.conf"
+      gpg-connect-agent reloadagent /bye 2>/dev/null || true
+      echo "GPG agent configured for loopback pinentry"
     fi
   fi
 }
