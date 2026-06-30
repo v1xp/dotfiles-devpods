@@ -126,11 +126,6 @@ task_gpg() {
 
 first_inits() {
   sudo ln -sf /usr/share/zoneinfo/America/Campo_Grande /etc/localtime
-  if command -v nvim >/dev/null 2>&1; then
-    # Set spelllang before Lazy sync to avoid interactive pt-BR prompt
-    nvim --headless +"set spelllang=en_us,pt_br" +qa 2>/dev/null || true
-    nvim --headless +"Lazy! sync" +TSUpdateSync +qa >"$logfile" 2>&1 &
-  fi
 }
 
 task_main() {
