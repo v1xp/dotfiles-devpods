@@ -21,6 +21,17 @@ install_targets() {
       continue
     fi
     echo "Stowing $cmd configuration..."
+
+    # Remove any existing files that would conflict with stow symlinks
+    while IFS= read -r -d '' f; do
+      rel="${f#./}"
+      target="$HOME/$rel"
+      if [ -e "$target" ] && [ ! -L "$target" ]; then
+        echo "  BACKUP: $target -> $target.stow-bak"
+        mv "$target" "$target.stow-bak"
+      fi
+    done < <(find "$dir" -type f -print0)
+
     stow --target="$HOME" -v "$dir"
   done
   wait
