@@ -1,5 +1,8 @@
 {
-  "image": "ghcr.io/v1xp/devpod-cli-uv:latest",
-  "postCreateCommand": "nvim --version && uv --version && opencode --version && lazygit --version",
+  "image": "ghcr.io/v1xp-org/devpod-cli-uv:latest",
+  "mounts": [
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  ],
+  "postCreateCommand": "nvim --version && uv --version && opencode --version && lazygit --version && docker --version && docker compose version",
   "remoteUser": "vscode"
 }
