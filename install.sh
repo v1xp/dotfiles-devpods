@@ -138,6 +138,12 @@ task_opencode_plugins() {
     fi
   fi
 
+  # Install graphify skill for opencode
+  if command -v graphify &>/dev/null; then
+    echo "Installing graphify skill for opencode..."
+    graphify install opencode 2>/dev/null || echo "WARNING: graphify skill install failed"
+  fi
+
   # Install opencode-ralph-loop plugin
   if command -v opencode &>/dev/null; then
     echo "ralph-loop plugin will be auto-installed by opencode on first run"
@@ -146,6 +152,7 @@ task_opencode_plugins() {
 
 first_inits() {
   sudo ln -sf /usr/share/zoneinfo/America/Campo_Grande /etc/localtime
+  nvim --headless +"set spelllang=en_us,pt_br" +qa 2>/dev/null || true
 }
 
 task_main() {
