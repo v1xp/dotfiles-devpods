@@ -10,6 +10,7 @@
   "permission": {
     "edit": "ask",
     "write": "ask",
+    "external_directory": "allow",
     "bash": {
       "*": "ask",
       "git *": "allow",
