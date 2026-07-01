@@ -17,13 +17,6 @@ if [[ "${1:-}" == "--force" ]]; then
   force=true
 fi
 
-# Check if graphify is installed
-if ! command -v graphify &>/dev/null; then
-  echo -e "${RED}Error:${NC} graphify not installed"
-  echo "Install with: uv tool install graphifyy"
-  exit 1
-fi
-
 # Check if we're in a git repo
 if ! git rev-parse --is-inside-work-tree &>/dev/null; then
   echo -e "${RED}Error:${NC} Not inside a git repository"
@@ -35,12 +28,21 @@ fi
 if [ -d "graphify-out" ] && [ -f "graphify-out/graph.json" ]; then
   if $force; then
     echo -e "${YELLOW}Rebuilding existing graph...${NC}"
+    # Check if graphify is installed for rebuild
+    if ! command -v graphify &>/dev/null; then
+      echo -e "${RED}Error:${NC} graphify not installed (needed for rebuild)"
+      echo "Install with: uv tool install graphifyy"
+      exit 1
+    fi
     rm -rf graphify-out
   else
     echo -e "${GREEN}Graph already exists${NC} at graphify-out/"
     echo "Use --force to rebuild"
     # Still install hooks if not present
-    if [ ! -f ".git/hooks/post-commit" ] || ! grep -q "graphify" ".git/hooks/post-commit" 2>/dev/null; then
+    if ! command -v graphify &>/dev/null; then
+      echo -e "${YELLOW}Warning:${NC} graphify not installed, cannot install hooks"
+      echo "Install with: uv tool install graphifyy"
+    elif [ ! -f ".git/hooks/post-commit" ] || ! grep -q "graphify" ".git/hooks/post-commit" 2>/dev/null; then
       echo "Installing git hooks..."
       graphify hook install
       echo -e "${GREEN}✓${NC} Git hooks installed"
@@ -49,6 +51,13 @@ if [ -d "graphify-out" ] && [ -f "graphify-out/graph.json" ]; then
     fi
     exit 0
   fi
+fi
+
+# Check if graphify is installed
+if ! command -v graphify &>/dev/null; then
+  echo -e "${RED}Error:${NC} graphify not installed"
+  echo "Install with: uv tool install graphifyy"
+  exit 1
 fi
 
 # Build the graph
